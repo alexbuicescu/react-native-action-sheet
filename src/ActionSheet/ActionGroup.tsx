@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, Text, Image, View, ScrollView } from 'react-native';
 import TouchableNativeFeedbackSafe from './TouchableNativeFeedbackSafe';
-import { ActionSheetOptions } from '../types';
+import { ActionSheetOptions, OptionProps } from '../types';
 
 type Props = ActionSheetOptions & {
   tintIcons: boolean | null;
@@ -76,6 +76,7 @@ export default class ActionGroup extends React.Component<Props> {
   _renderOptionViews = () => {
     const {
       options,
+      optionsProps,
       icons,
       destructiveButtonIndex,
       onSelect,
@@ -104,9 +105,14 @@ export default class ActionGroup extends React.Component<Props> {
           pressInDelay={0}
           background={nativeFeedbackBackground}
           onPress={() => onSelect(i)}
-          style={styles.button}>
+          style={styles.button}
+          {...this._getTouchablePropsAtIndex(optionsProps, i)}>
           {this._renderIconElement(iconSource, color)}
-          <Text style={[styles.text, textStyle, { color }]}>{options[i]}</Text>
+          <Text
+            style={[styles.text, textStyle, { color }]}
+            {...this._getTextPropsAtIndex(optionsProps, i)}>
+            {options[i]}
+          </Text>
         </TouchableNativeFeedbackSafe>
       );
 
@@ -116,6 +122,32 @@ export default class ActionGroup extends React.Component<Props> {
     }
 
     return optionViews;
+  };
+
+  _getTextPropsAtIndex = (extraProps: OptionProps[], index: number) => {
+    if (!extraProps) {
+      return {};
+    }
+    if (!extraProps[index]) {
+      return {};
+    }
+    if (!extraProps[index].text) {
+      return {};
+    }
+    return extraProps[index].text;
+  };
+
+  _getTouchablePropsAtIndex = (extraProps: OptionProps[], index: number) => {
+    if (!extraProps) {
+      return {};
+    }
+    if (!extraProps[index]) {
+      return {};
+    }
+    if (!extraProps[index].touchable) {
+      return {};
+    }
+    return extraProps[index].touchable;
   };
 }
 

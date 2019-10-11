@@ -4,6 +4,7 @@ import { TextStyle, ViewStyle } from 'react-native';
 // for iOS
 export interface ActionSheetIOSOptions {
   options: string[];
+  optionsProps?: OptionProps[];
   title?: string;
   message?: string;
   tintColor?: string;
@@ -20,4 +21,9 @@ export interface ActionSheetOptions extends ActionSheetIOSOptions {
   messageTextStyle?: TextStyle;
   showSeparators?: boolean;
   separatorStyle?: ViewStyle;
+}
+
+export interface OptionProps {
+  text: any;
+  touchable: any;
 }
