@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { TextStyle, ViewStyle } from 'react-native';
+import { TextProps, TextStyle, TouchableNativeFeedbackProps, ViewStyle } from 'react-native';
 
 // for iOS
 export interface ActionSheetIOSOptions {
@@ -24,6 +24,6 @@ export interface ActionSheetOptions extends ActionSheetIOSOptions {
 }
 
 export interface OptionProps {
-  text: any;
-  touchable: any;
+  text?: TextProps;
+  touchable?: TouchableNativeFeedbackProps;
 }

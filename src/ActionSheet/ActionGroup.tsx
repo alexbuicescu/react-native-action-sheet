@@ -124,7 +124,7 @@ export default class ActionGroup extends React.Component<Props> {
     return optionViews;
   };
 
-  _getTextPropsAtIndex = (extraProps: OptionProps[], index: number) => {
+  _getTextPropsAtIndex = (extraProps: undefined | OptionProps[], index: number) => {
     if (!extraProps) {
       return {};
     }
@@ -137,7 +137,7 @@ export default class ActionGroup extends React.Component<Props> {
     return extraProps[index].text;
   };
 
-  _getTouchablePropsAtIndex = (extraProps: OptionProps[], index: number) => {
+  _getTouchablePropsAtIndex = (extraProps: undefined | OptionProps[], index: number) => {
     if (!extraProps) {
       return {};
     }
