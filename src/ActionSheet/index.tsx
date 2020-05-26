@@ -3,9 +3,11 @@ import {
   Animated,
   BackHandler,
   Easing,
+  Modal,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
+  ViewProps,
 } from 'react-native';
 import ActionGroup from './ActionGroup';
 import { ActionSheetOptions } from '../types';
@@ -21,6 +23,7 @@ interface State {
 
 interface Props {
   readonly useNativeDriver: boolean | undefined;
+  readonly pointerEvents?: ViewProps['pointerEvents'];
 }
 
 const OPACITY_ANIMATION_IN_TIME = 225;
@@ -51,7 +54,8 @@ export default class ActionSheet extends React.Component<Props, State> {
     (this._actionSheetHeight = nativeEvent.layout.height);
 
   render() {
-    const { isVisible, overlayOpacity } = this.state;
+    const { isVisible, overlayOpacity, options } = this.state;
+    const useModal = options ? options.useModal === true : false;
     const overlay = isVisible ? (
       <Animated.View
         style={[
@@ -62,14 +66,31 @@ export default class ActionSheet extends React.Component<Props, State> {
         ]}
       />
     ) : null;
-    return (
+
+    // While the sheet is visible, hide the rest of the app's content from screen readers.
+    const appContent = (
       <View
-        style={{
-          flex: 1,
-        }}>
+        style={styles.flexContainer}
+        importantForAccessibility={isVisible ? 'no-hide-descendants' : 'auto'}>
         {React.Children.only(this.props.children)}
-        {overlay}
-        {isVisible ? this._renderSheet() : null}
+      </View>
+    );
+
+    return (
+      <View pointerEvents={this.props.pointerEvents} style={styles.flexContainer}>
+        {appContent}
+        {isVisible && !useModal && (
+          <React.Fragment>
+            {overlay}
+            {this._renderSheet()}
+          </React.Fragment>
+        )}
+        {isVisible && useModal && (
+          <Modal animationType="none" transparent={true} onRequestClose={this._selectCancelButton}>
+            {overlay}
+            {this._renderSheet()}
+          </Modal>
+        )}
       </View>
     );
   }
@@ -87,17 +108,20 @@ export default class ActionSheet extends React.Component<Props, State> {
       icons,
       tintIcons,
       destructiveButtonIndex,
+      destructiveColor,
       textStyle,
       tintColor,
       title,
       titleTextStyle,
       message,
       messageTextStyle,
+      autoFocus,
       showSeparators,
+      containerStyle,
       separatorStyle,
     } = options;
     return (
-      <TouchableWithoutFeedback onPress={this._selectCancelButton}>
+      <TouchableWithoutFeedback importantForAccessibility="yes" onPress={this._selectCancelButton}>
         <Animated.View
           needsOffscreenAlphaCompositing={isAnimating}
           style={[
@@ -121,6 +145,7 @@ export default class ActionSheet extends React.Component<Props, State> {
               icons={icons}
               tintIcons={tintIcons === undefined ? true : tintIcons}
               destructiveButtonIndex={destructiveButtonIndex}
+              destructiveColor={destructiveColor}
               onSelect={this._onSelect}
               startIndex={0}
               length={optionsArray.length}
@@ -130,7 +155,9 @@ export default class ActionSheet extends React.Component<Props, State> {
               titleTextStyle={titleTextStyle}
               message={message || undefined}
               messageTextStyle={messageTextStyle}
+              autoFocus={autoFocus}
               showSeparators={showSeparators}
+              containerStyle={containerStyle}
               separatorStyle={separatorStyle}
             />
           </View>
@@ -140,14 +167,10 @@ export default class ActionSheet extends React.Component<Props, State> {
   }
 
   showActionSheetWithOptions = (options: ActionSheetOptions, onSelect: (i: number) => void) => {
-    const { isVisible, isAnimating, overlayOpacity, sheetOpacity } = this.state;
-
-    if (isVisible && isAnimating) {
-      this._deferNextShow = this.showActionSheetWithOptions.bind(this, options, onSelect);
-      return;
-    }
+    const { isVisible, overlayOpacity, sheetOpacity } = this.state;
 
     if (isVisible) {
+      this._deferNextShow = this.showActionSheetWithOptions.bind(this, options, onSelect);
       return;
     }
 
@@ -253,6 +276,9 @@ export default class ActionSheet extends React.Component<Props, State> {
 }
 
 const styles = StyleSheet.create({
+  flexContainer: {
+    flex: 1,
+  },
   overlay: {
     position: 'absolute',
     top: 0,

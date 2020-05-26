@@ -1,5 +1,15 @@
 import * as React from 'react';
-import { StyleSheet, Text, Image, View, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  Image,
+  View,
+  ScrollView,
+  findNodeHandle,
+  AccessibilityInfo,
+  Platform,
+  UIManager,
+} from 'react-native';
 import TouchableNativeFeedbackSafe from './TouchableNativeFeedbackSafe';
 import { ActionSheetOptions, OptionProps } from '../types';
 
@@ -14,6 +24,28 @@ const BLACK_54PC_TRANSPARENT = '#0000008a';
 const BLACK_87PC_TRANSPARENT = '#000000de';
 const DESTRUCTIVE_COLOR = '#d32f2f';
 
+/**
+ * Can be used as a React ref for a component to auto-focus for accessibility on render.
+ * @param ref The component to auto-focus
+ */
+const focusViewOnRender = (ref: React.Component | null) => {
+  if (ref) {
+    const reactTag = findNodeHandle(ref);
+    if (reactTag) {
+      if (Platform.OS === 'android') {
+        // @ts-ignore: sendAccessibilityEvent is missing from @types/react-native
+        UIManager.sendAccessibilityEvent(
+          reactTag,
+          // @ts-ignore: AccessibilityEventTypes is missing from @types/react-native
+          UIManager.AccessibilityEventTypes.typeViewFocused
+        );
+      } else {
+        AccessibilityInfo.setAccessibilityFocus(reactTag);
+      }
+    }
+  }
+};
+
 export default class ActionGroup extends React.Component<Props> {
   static defaultProps = {
     title: null,
@@ -25,7 +57,7 @@ export default class ActionGroup extends React.Component<Props> {
 
   render() {
     return (
-      <View style={styles.groupContainer}>
+      <View style={[styles.groupContainer, this.props.containerStyle]}>
         {this._renderTitleContent()}
         <ScrollView>{this._renderOptionViews()}</ScrollView>
       </View>
@@ -34,10 +66,7 @@ export default class ActionGroup extends React.Component<Props> {
 
   _renderRowSeparator = (key: string | number) => {
     return (
-      <View
-        key={key && `separator-${key}`}
-        style={[styles.rowSeparator, this.props.separatorStyle]}
-      />
+      <View key={`separator-${key}`} style={[styles.rowSeparator, this.props.separatorStyle]} />
     );
   };
 
@@ -79,11 +108,13 @@ export default class ActionGroup extends React.Component<Props> {
       optionsProps,
       icons,
       destructiveButtonIndex,
+      destructiveColor = DESTRUCTIVE_COLOR,
       onSelect,
       startIndex,
       length,
       textStyle,
       tintColor,
+      autoFocus,
       showSeparators,
     } = this.props;
     const optionViews: React.ReactNode[] = [];
@@ -96,16 +127,19 @@ export default class ActionGroup extends React.Component<Props> {
       const defaultColor = tintColor
         ? tintColor
         : (textStyle || {}).color || BLACK_87PC_TRANSPARENT;
-      const color = i === destructiveButtonIndex ? DESTRUCTIVE_COLOR : defaultColor;
+      const color = i === destructiveButtonIndex ? destructiveColor : defaultColor;
       const iconSource = icons != null ? icons[i] : null;
 
       optionViews.push(
         <TouchableNativeFeedbackSafe
+          ref={autoFocus && i === 0 ? focusViewOnRender : undefined}
           key={i}
           pressInDelay={0}
           background={nativeFeedbackBackground}
           onPress={() => onSelect(i)}
           style={styles.button}
+          accessibilityRole="button"
+          accessibilityLabel={options[i]}
           {...this._getTouchablePropsAtIndex(optionsProps, i)}>
           {this._renderIconElement(iconSource, color)}
           <Text

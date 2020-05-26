@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, View, TextStyle } from 'react-native';
+import { Text, View, TextStyle, ViewStyle, findNodeHandle, Button } from 'react-native';
 import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import { ActionSheetOptions } from '@expo/react-native-action-sheet';
 
@@ -8,7 +8,7 @@ const icon = (name: string) => <MaterialIcons key={name} name={name} size={24} /
 interface Props {
   title: string;
   showActionSheetWithOptions: (
-    optons: ActionSheetOptions,
+    options: ActionSheetOptions,
     callback: (buttonIndex: number) => void
   ) => void;
   onSelection: (index: number) => void;
@@ -17,6 +17,8 @@ interface Props {
   withIcons?: boolean;
   withSeparators?: boolean;
   withCustomStyles?: boolean;
+  withAnchor?: boolean;
+  useModal?: boolean;
 }
 
 // A custom button that shows examples of different share sheet configurations
@@ -27,11 +29,16 @@ export default class ShowActionSheetButton extends React.PureComponent<Props> {
     withIcons: false,
     withSeparators: false,
     withCustomStyles: false,
+    withAnchor: false,
     onSelection: null,
+    useModal: false,
   };
+
+  _anchorRef = React.createRef<Button>();
 
   _showActionSheet = () => {
     const {
+      withAnchor,
       withTitle,
       withMessage,
       withIcons,
@@ -39,6 +46,7 @@ export default class ShowActionSheetButton extends React.PureComponent<Props> {
       withCustomStyles,
       onSelection,
       showActionSheetWithOptions,
+      useModal,
     } = this.props;
 
     // Same interface as https://facebook.github.io/react-native/docs/actionsheetios.html
@@ -74,6 +82,15 @@ export default class ShowActionSheetButton extends React.PureComponent<Props> {
           textAlign: 'right',
         }
       : undefined;
+    const containerStyle: ViewStyle | undefined = withCustomStyles
+      ? {
+          backgroundColor: 'lightgrey',
+        }
+      : undefined;
+    const anchor: number | null = this._anchorRef.current
+      ? findNodeHandle(this._anchorRef.current)
+      : null;
+
     showActionSheetWithOptions(
       {
         options,
@@ -82,6 +99,8 @@ export default class ShowActionSheetButton extends React.PureComponent<Props> {
         title,
         message,
         icons,
+        //iPad only
+        anchor: withAnchor && anchor ? anchor : undefined,
         // Android only
         tintIcons: true,
         // Android only; default is true
@@ -91,9 +110,13 @@ export default class ShowActionSheetButton extends React.PureComponent<Props> {
         // Android only
         titleTextStyle,
         // Android only
-        messageTextStyle, // Android only
+        messageTextStyle,
+        // Android only,
+        containerStyle,
+        // Android only,
+        useModal,
       },
-      buttonIndex => {
+      (buttonIndex: number) => {
         // Do something here depending on the button index selected
         onSelection(buttonIndex);
       }
@@ -107,7 +130,11 @@ export default class ShowActionSheetButton extends React.PureComponent<Props> {
         style={{
           margin: 6,
         }}>
-        <Entypo.Button name="code" backgroundColor="#3e3e3e" onPress={this._showActionSheet}>
+        <Entypo.Button
+          name="code"
+          backgroundColor="#3e3e3e"
+          onPress={this._showActionSheet}
+          ref={this._anchorRef}>
           <Text
             style={{
               fontSize: 15,

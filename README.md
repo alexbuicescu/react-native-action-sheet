@@ -23,7 +23,24 @@ $ yarn add @expo/react-native-action-sheet
 
 ## A basic ActionSheet Setup
 
-### 1. Connect your component which uses showActionSheetWithOptions.
+### 1. Wrap your top-level component with `<ActionSheetProvider />`
+
+```es6
+
+import { ActionSheetProvider } from '@expo/react-native-action-sheet'
+
+class AppContainer extends React.Component {
+  render() {
+    return (
+      <ActionSheetProvider>
+        <ConnectedApp />
+      </ActionSheetProvider>
+    );
+  }
+}
+```
+
+### 2. Connect your component which uses showActionSheetWithOptions.
 ```es6
 import { connectActionSheet } from '@expo/react-native-action-sheet'
 
@@ -69,32 +86,24 @@ export default function App () {
 }
 ```
 
-### 2. Wrap your top-level component with `<ActionSheetProvider />`
-
-```es6
-
-import { ActionSheetProvider } from '@expo/react-native-action-sheet'
-
-class AppContainer extends React.Component {
-  render() {
-    return (
-      <ActionSheetProvider>
-        <ConnectedApp />
-      </ActionSheetProvider>
-    );
-  }
-}
-```
-
 ## Options
 
 The goal of this library is to mimic the native iOS and Android ActionSheets as closely as possible.
 
-This library can also be used with on web with Expo.
+This library can also be used in the browser with Expo for web.
 
 ### Universal Props
 
 The same options available on React Native's [ActionSheetIOS](https://facebook.github.io/react-native/docs/actionsheetios.html#showactionsheetwithoptions) component exist for both iOS and Android in this library.
+
+### iOS Only Props
+
+| Name             | Type   | Required | Default |
+| -----------------| -------| -------- | ------- |
+| anchor           | number | No       |         |
+
+#### `anchor` (optional)
+iPad only option that allows for docking the action sheet to a node. See [ShowActionSheetButton.tsx](/example/ShowActionSheetButton.tsx) for an example on how to implement this.
 
 ### Android/Web-Only Props
 
@@ -108,8 +117,12 @@ The below props allow modification of the Android ActionSheet. They have no effe
 | textStyle        | TextStyle                         | No       |         |
 | titleTextStyle   | TextStyle                         | No       |         |
 | messageTextStyle | TextStyle                         | No       |         |
+| autoFocus        | boolean                           | No       |  false  |
 | showSeparators   | boolean                           | No       |  false  |
+| containerStyle   | ViewStyle                         | No       |         |
 | separatorStyle   | ViewStyle                         | No       |         |
+| useModal         | boolean                           | No       | false   |
+| destructiveColor | string                            | No       | #d32f2f |
 
 #### `icons` (optional)
 
@@ -127,11 +140,24 @@ Apply any text style props to the title if present.
 #### `messageTextStyle` (optional)
 Apply any text style props to the message if present.
 
+#### `autoFocus`: (optional)
+If true, will give the first option screen reader focus automatically when the action sheet becomes visible.
+On iOS, this is the default behavior of the native action sheet.
+
 #### `showSeparators`: (optional)
 Show separators between items. On iOS, separators always show so this prop has no effect.
 
+#### `containerStyle`: (optional)
+Apply any view style props to the container rather than use the default look (e.g. dark mode).
+
 #### `separatorStyle`: (optional)
 Modify the look of the separators rather than use the default look.
+
+#### `useModal`: (optional)
+Wrap the ActionSheet with a Modal, in order to show in front of other Modals that were already opened ([issue reference](https://github.com/expo/react-native-action-sheet/issues/164)).
+
+#### `destructiveColor`: (optional)
+Modify color for text of destructive option.
 
 ## Try it out
 
